@@ -1,0 +1,43 @@
+# 人脸数据库使用说明
+
+## 目录结构
+
+face_database/
+├── Person_A/           # 人员A的照片
+│   ├── photo_1.jpg
+│   └── photo_2.jpg
+├── Person_B/           # 人员B的照片
+│   ├── photo_1.jpg
+│   └── photo_2.jpg
+└── ...
+
+## 使用步骤
+
+1. **添加您自己的照片**
+   - 将现有的示例文件夹重命名为真实姓名
+   - 或创建新的文件夹并放入照片
+
+2. **照片要求**
+   - 格式：jpg, jpeg, png, bmp, tiff
+   - 人脸清晰、正面、光线充足
+   - 每人建议 2-3 张不同角度的照片
+
+3. **构建数据库**
+   ```bash
+   python build_database.py
+   ```
+
+4. **开始识别**
+   ```bash
+   # 离线识别
+   python main.py --image test.jpg
+   
+   # 实时识别
+   python real_time_main.py
+   ```
+
+## 注意事项
+
+- 文件夹名称就是识别时显示的姓名
+- 照片质量直接影响识别准确率
+- 建议使用高质量的正面照片
