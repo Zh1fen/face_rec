@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/embeddings.npy
+data/names.json
+models/*.onnx
+models/*.task
+models/*.part
+face_database/*
+!face_database/.gitkeep
+*.jpg
+*.jpeg
+*.png
+.DS_Store

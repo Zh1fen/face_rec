@@ -1,262 +1,101 @@
-# 人脸识别系统
+# 文本条件人脸核验
 
-基于 PyTorch 的人脸识别系统，支持离线图片识别和实时摄像头识别。 
+摄像头里要同时满足文字提出的条件才算通过：是注册过的那个人，并且表情、手势和这句话一致。一句话可以只写表情、只写动作，或者两样一起写。
 
-## 功能特点
+例如「请微笑并用单手比耶」会检查三件事：
 
-- ✅ **离线图片识别**: 支持单张图片、批量图片和文件夹识别
-- ✅ **实时摄像头识别**: 使用摄像头进行实时人脸识别
-- ✅ **高精度识别**: 基于 FaceNet 预训练模型，识别准确率 95%+
-- ✅ **人脸跟踪**: 实时识别中支持人脸跟踪，避免重复识别
-- ✅ **可视化结果**: 在图片上显示识别结果和置信度
-- ✅ **灵活配置**: 支持多种参数配置和自定义设置
+- 身份是已注册的人
+- 表情是微笑
+- 刚好有一只手在比耶
 
-## 项目结构
+本人只微笑、没有比耶，结果是不通过。换一个人即使做对了动作，也是不通过。
 
-```
-face_rec/
-├── src/                        # 源代码目录
-│   ├── face_detector.py        # 人脸检测模块 (MTCNN)
-│   ├── feature_extractor.py    # 特征提取模块 (FaceNet)
-│   ├── face_recognizer.py      # 人脸识别模块
-│   ├── face_tracker.py         # 人脸跟踪模块
-│   ├── real_time_recognizer.py # 实时识别模块
-│   └── utils.py                # 工具函数
-├── models/                     # 预训练模型目录
-├── face_database/              # 人脸库目录 (放入已知人脸图片)
-│   ├── 张三/
-│   │   ├── photo1.jpg
-│   │   └── photo2.jpg
-│   └── 李四/
-│       └── photo1.jpg
-├── test_images/               # 测试图片目录
-├── features/                  # 特征向量存储目录
-├── config.py                  # 配置文件
-├── build_database.py          # 构建人脸特征数据库
-├── main.py                    # 离线识别主程序
-├── real_time_main.py         # 实时识别主程序
-└── requirements.txt          # 依赖包列表
-```
-
-## 安装和配置
-
-### 1. 安装依赖
+## 准备
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. 准备人脸数据库
-
-在 `face_database/` 目录中按人名创建子文件夹，并放入对应的照片：
-
-```
-face_database/
-├── 张三/
-│   ├── photo1.jpg
-│   ├── photo2.jpg
-│   └── photo3.jpg
-├── 李四/
-│   ├── photo1.jpg
-│   └── photo2.jpg
-└── 王五/
-    └── photo1.jpg
-```
-
-### 3. 构建特征数据库
+如果系统没有 `python3-venv`，可以用 [uv](https://docs.astral.sh/uv/)：
 
 ```bash
-python build_database.py
+uv venv .venv
+uv pip install --python .venv/bin/python -r requirements.txt
+source .venv/bin/activate
 ```
 
-## 使用方法
+第一次运行会下载四个人脸和手部模型，需要能访问 GitHub 和 Google 的模型地址。
 
-### 离线图片识别
+## 注册
+
+摄像头前按空格保存正脸，默认 5 张，至少 3 张后可以按回车结束：
 
 ```bash
-# 识别单张图片
-python main.py --image test_images/test.jpg
-
-# 识别文件夹中的所有图片
-python main.py --folder test_images/
-
-# 批量识别多张图片
-python main.py --batch image1.jpg image2.jpg image3.jpg
-
-# 保存识别结果图片
-python main.py --image test.jpg --save
-
-# 显示所有检测到的人脸（包括未识别的）
-python main.py --image test.jpg --show-all
+python enroll.py --name 张三
 ```
 
-### 实时摄像头识别
+也可以直接用一个文件夹里的照片。每个人单独放一个文件夹：
 
 ```bash
-# 启动实时识别（使用默认摄像头）
-python real_time_main.py
-
-# 指定摄像头
-python real_time_main.py --camera 1
-
-# 列出可用摄像头
-python real_time_main.py --list-cameras
-
-# 测试摄像头
-python real_time_main.py --test-camera 0
-
-# 禁用人脸跟踪
-python real_time_main.py --no-tracking
-
-# 自定义识别阈值
-python real_time_main.py --threshold 0.7
+python enroll.py --name 张三 --images face_database/张三
 ```
-
-### 实时识别控制
-
-在实时识别界面中：
-- **空格键**: 暂停/继续识别
-- **S键**: 保存当前帧
-- **R键**: 重置识别历史
-- **C键**: 切换摄像头
-- **Q键**: 退出程序
-
-## 配置选项
-
-### 数据库构建配置
 
 ```bash
-# 使用平均特征（推荐）
-python build_database.py
-
-# 只使用第一个检测到的特征
-python build_database.py --no-average
-
-# 设置每个人最少需要的人脸数量
-python build_database.py --min-faces 2
-
-# 验证现有数据库
-python build_database.py --validate
+python enroll.py --list
+python enroll.py --remove 张三
 ```
 
-### 自定义配置文件
-
-创建自定义配置文件：
+## 演示
 
 ```bash
-python real_time_main.py --create-config
+python app.py
 ```
 
-这会生成 `custom_config.json` 文件，您可以修改其中的参数：
+右侧列出这些句子，点击或按数字键 `1` 到 `6` 切换：
 
-```json
-{
-  "camera_id": 0,
-  "fps": 30,
-  "process_fps": 10,
-  "detection_confidence": 0.9,
-  "recognition_threshold": 0.6,
-  "face_size": [160, 160],
-  "display_size": [800, 600],
-  "save_unknown_faces": true,
-  "show_confidence": true,
-  "track_faces": true,
-  "max_track_frames": 30
-}
-```
+- 请微笑
+- 请做出惊讶的表情
+- 请单手比耶
+- 请双手比耶
+- 请微笑并用单手比耶
+- 请比心
 
-然后使用自定义配置：
+按 `Q` 退出。句子写在 `prompts.json` 里，改完重新运行即可。
+
+指定启动时的第一句：
 
 ```bash
-python real_time_main.py --config custom_config.json
+python app.py --prompt "请微笑并用单手比耶"
 ```
 
-## 技术实现
+核验的是画面里最大的那张脸。手要完整出现在画面中。比心指的是单手用拇指和食指捏出的小心心。
 
-### 人脸检测
-- 使用 **MTCNN** (Multi-task CNN) 进行人脸检测
-- 支持多人脸检测和人脸关键点定位
-- 可配置检测置信度和最小人脸尺寸
+能识别的说法：
 
-### 特征提取
-- 使用 **FaceNet** 预训练模型提取 512 维特征向量
-- 支持 VGGFace2 和 CASIA-WebFace 预训练权重
-- 特征向量经过 L2 归一化处理
+- 表情：微笑、开心、惊讶、吃惊、生气、皱眉
+- 手势：单手比耶、双手比耶、剪刀手、比心、比爱心
 
-### 相似度计算
-- 使用**余弦相似度**计算特征向量相似性
-- 支持可配置的识别阈值
-- 在数据库中查找最佳匹配
+「不要笑，请比耶」这种否定会生效。一句话里放两种表情或两种手势会提示改句子，不会各算各的。
 
-### 人脸跟踪
-- 使用 **OpenCV CSRT 跟踪器**
-- 避免对同一张脸重复识别
-- 支持多人脸同时跟踪
+## 测试
 
-## 性能优化
+不打开摄像头，只检查文字解析、手势规则和通过条件：
 
-### 实时识别优化
-- 异步处理：检测和识别在后台线程进行
-- 帧率控制：可设置处理帧率低于视频帧率
-- 人脸跟踪：减少重复识别计算
-- 队列管理：避免帧堆积
+```bash
+python -m unittest discover -s tests
+```
 
-### 识别准确性优化
-- 人脸对齐：基于关键点进行人脸对齐
-- 平均特征：使用多张照片的平均特征
-- 质量筛选：过滤低质量的人脸检测结果
+## 目录
 
-## 疑难解答
+- `app.py`：摄像头演示
+- `enroll.py`：注册人脸
+- `prompts.json`：演示用的句子
+- `src/prompt.py`：把句子拆成表情和手势
+- `src/identity.py`：YuNet 找脸，SFace 认人
+- `src/vision.py`：MediaPipe 看表情和手
+- `src/gesture.py`：比耶、比心
+- `data/`：注册后的特征，不进 git
 
-### 常见问题
-
-1. **ImportError: No module named 'mtcnn'**
-   ```bash
-   pip install mtcnn
-   ```
-
-2. **ImportError: No module named 'facenet_pytorch'**
-   ```bash
-   pip install facenet-pytorch
-   ```
-
-3. **摄像头无法打开**
-   - 检查摄像头是否被其他程序占用
-   - 尝试不同的摄像头ID
-   - 使用 `--test-camera` 参数测试摄像头
-
-4. **识别准确率低**
-   - 确保人脸数据库照片质量良好
-   - 增加每个人的照片数量
-   - 调整识别阈值
-   - 确保照片中人脸清晰且正面
-
-5. **实时识别卡顿**
-   - 降低处理帧率 `--process-fps`
-   - 启用人脸跟踪减少计算量
-   - 调整显示窗口大小
-
-### 系统要求
-
-- **Python**: 3.7+
-- **操作系统**: Windows/Linux/macOS
-- **内存**: 建议 4GB+ RAM
-- **摄像头**: 支持 OpenCV 的 USB 摄像头
-- **GPU**: 可选，支持 CUDA 加速
-
-## 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 支持离线图片识别
-- 支持实时摄像头识别
-- 集成人脸跟踪功能
-- 提供完整的配置选项
-
-## 许可证
-
-MIT License
-
-## 贡献
-
-欢迎提交 Issues 和 Pull Requests！
+人脸特征用 `npy` 和 `json` 保存。不要把旧的 pickle 特征文件拷回来用。
